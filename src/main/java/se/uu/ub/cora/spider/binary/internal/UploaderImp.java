@@ -20,6 +20,7 @@
 
 package se.uu.ub.cora.spider.binary.internal;
 
+import java.io.BufferedInputStream;
 import java.io.InputStream;
 import java.text.MessageFormat;
 import java.util.Optional;
@@ -118,6 +119,31 @@ public final class UploaderImp implements Uploader {
 				.getRecordTypeHandlerUsingDataRecordGroup(dataRecordGroup);
 
 		tryToCheckUserIsAuthorisedToUploadData(dataRecordGroup);
+
+		// Suggested change:
+		// detect the MIME type during upload, before sending the stream to Fedora, instead of
+		// downloading it again afterward.
+		// Wrap the incoming upload in a BufferedInputStream, let Tika inspect it using mark/reset,
+		// then pass that same stream—from the beginning—to Fedora. Keep it open until the upload
+		// finishes.
+		//
+		// From tika javadoc:
+		// * If the document stream supports the
+		// * {@link InputStream#markSupported() mark feature}, then the stream is
+		// * marked and reset to the original position before this method returns.
+		//
+		// BufferedInputStream has markSupport
+		//
+		// That avoids the extra Fedora GET and its early-close broken pipe. Some formats may
+		// require substantial reading or temporary-file buffering, so verify your Tika detector’s
+		// behavior.
+
+		BufferedInputStream bufferedInputStream = new BufferedInputStream(resourceStream);
+		ContentAnalyzer contentAnalyzer = BinaryProvider.getContentAnalyzer();
+		String detectedMimeType = contentAnalyzer.getMimeType(bufferedInputStream);
+		storeBinaryToArchive(bufferedInputStream);
+		// end of suggested soulution
+
 		storeBinaryToArchive(resourceStream);
 
 		return analyzeAndProcessBinary(dataRecordGroup);
