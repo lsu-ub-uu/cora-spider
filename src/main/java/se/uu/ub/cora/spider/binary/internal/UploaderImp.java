@@ -139,6 +139,8 @@ public final class UploaderImp implements Uploader {
 		// behavior.
 
 		BufferedInputStream bufferedInputStream = new BufferedInputStream(resourceStream);
+		// OBS: TikaContentAnalyzer creates a TikaInputStream using try-and-resources which auto
+		// closes the input stream.
 		ContentAnalyzer contentAnalyzer = BinaryProvider.getContentAnalyzer();
 		String detectedMimeType = contentAnalyzer.getMimeType(bufferedInputStream);
 		storeBinaryToArchive(bufferedInputStream);
