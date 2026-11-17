@@ -18,22 +18,29 @@
  */
 package se.uu.ub.cora.spider.extended.batchjob;
 
+import java.util.List;
+
+import se.uu.ub.cora.data.DataGroup;
+import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecordGroup;
+import se.uu.ub.cora.spider.data.DataGroupToFilter;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.index.IndexBatchHandler;
 import se.uu.ub.cora.spider.index.internal.IndexBatchJob;
+import se.uu.ub.cora.storage.Filter;
+import se.uu.ub.cora.storage.RecordStorage;
 
 public class RunBatchJobExtendedFunctionality implements ExtendedFunctionality {
 
-	private IndexBatchHandler indexBatchHandler;
+	private IndexBatchHandler batchHandler;
 	private SpiderDependencyProvider dependencyProvider;
 
 	public RunBatchJobExtendedFunctionality(SpiderDependencyProvider dependencyProvider,
-			IndexBatchHandler indexBatchHandler) {
+			IndexBatchHandler batchHandler) {
 		this.dependencyProvider = dependencyProvider;
-		this.indexBatchHandler = indexBatchHandler;
+		this.batchHandler = batchHandler;
 	}
 
 	@Override
@@ -41,11 +48,29 @@ public class RunBatchJobExtendedFunctionality implements ExtendedFunctionality {
 
 		DataRecordGroup dataRecordGroup = data.dataRecordGroup;
 
-		var recordTypeToIndex = dataRecordGroup
+		var recordTypeForBatch = dataRecordGroup
 				.getFirstAtomicValueWithNameInData("recordTypeToIndex");
-		IndexBatchJob batchJob = new IndexBatchJob(recordTypeToIndex, 0L, null);
 
-		indexBatchHandler.runIndexBatchJob(batchJob);
+		Filter emptyFilter = createEmptyFilter();
+		long matchesFromStorageUsingFilter = getTotalNumberOfMatchesFromStorageUsingFilter(
+				recordTypeForBatch, emptyFilter);
+		IndexBatchJob batchJob = new IndexBatchJob(recordTypeForBatch, matchesFromStorageUsingFilter,
+				emptyFilter);
+
+		batchHandler.runIndexBatchJob(batchJob);
+	}
+
+	private Filter createEmptyFilter() {
+		DataGroupToFilter converterDataGroupToFilter = dependencyProvider
+				.getDataGroupToFilterConverter();
+		DataGroup newFilterDG = DataProvider.createGroupUsingNameInData("filter");
+		return converterDataGroupToFilter.convert(newFilterDG);
+	}
+
+	private long getTotalNumberOfMatchesFromStorageUsingFilter(String recordTypeToIndex,
+			Filter filter) {
+		RecordStorage recordStorage = dependencyProvider.getRecordStorage();
+		return recordStorage.getTotalNumberOfRecordsForTypes(List.of(recordTypeToIndex), filter);
 	}
 
 	// private DataRecord storeAndRunBatchJob() {
@@ -71,7 +96,7 @@ public class RunBatchJobExtendedFunctionality implements ExtendedFunctionality {
 	}
 
 	public IndexBatchHandler onlyForTestGetIndexBatchHandler() {
-		return indexBatchHandler;
+		return batchHandler;
 	}
 
 }
