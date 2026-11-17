@@ -24,12 +24,11 @@ import se.uu.ub.cora.testutils.mcr.MethodCallRecorder;
 
 public class IndexBatchHandlerSpy implements IndexBatchHandler {
 
-	MethodCallRecorder MCR = new MethodCallRecorder();
+	public MethodCallRecorder MCR = new MethodCallRecorder();
 
 	@Override
 	public void runIndexBatchJob(IndexBatchJob indexBatchJob) {
 		MCR.addCall("indexBatchJob", indexBatchJob);
-
 	}
 
 }
