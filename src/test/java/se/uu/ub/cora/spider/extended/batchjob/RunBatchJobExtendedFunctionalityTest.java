@@ -26,8 +26,10 @@ import java.util.List;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.spies.DataFactorySpy;
+import se.uu.ub.cora.data.spies.DataGroupSpy;
 import se.uu.ub.cora.data.spies.DataRecordGroupSpy;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.dependency.spy.DataGroupToFilterSpy;
@@ -74,6 +76,16 @@ public class RunBatchJobExtendedFunctionalityTest {
 		recordStorage = new RecordStorageSpy();
 		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getRecordStorage",
 				() -> recordStorage);
+
+	}
+
+	private void setData() {
+		dataRecordGroup = new DataRecordGroupSpy();
+		data = new ExtendedFunctionalityData();
+		data.dataRecordGroup = dataRecordGroup;
+
+		dataRecordGroup.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
+				() -> "someRecordType", "recordTypeToIndex");
 	}
 
 	@Test
@@ -88,9 +100,33 @@ public class RunBatchJobExtendedFunctionalityTest {
 		assertBatchJob(batchJob);
 	}
 
+	@Test
+	public void testCallRunIndexBatchJobWithFilter() {
+		dataRecordGroup.MRV.setSpecificReturnValuesSupplier("containsChildWithNameInData",
+				() -> true, "filter");
+		DataGroup filterGroup = new DataGroupSpy();
+		dataRecordGroup.MRV.setSpecificReturnValuesSupplier("getFirstGroupWithNameInData",
+				() -> filterGroup, "filter");
+
+		extFunc.useExtendedFunctionality(data);
+
+		batchHandler.MCR.assertMethodWasCalled("runIndexBatchJob");
+		IndexBatchJob batchJob = (IndexBatchJob) batchHandler.MCR
+				.getParameterForMethodAndCallNumberAndParameter("runIndexBatchJob", 0,
+						"indexBatchJob");
+
+		assertFilterFromData(batchJob, filterGroup);
+	}
+
+	private Filter assertFilterFromData(IndexBatchJob batchJob, DataGroup filterGroup) {
+		var filter = dataGroupToFilter.MCR.assertCalledParametersReturn("convert", filterGroup);
+		assertEquals(batchJob.filter, filter);
+		return (Filter) filter;
+	}
+
 	private void assertBatchJob(IndexBatchJob batchJob) {
 		assertRecordTypeForBatch(batchJob);
-		Filter filter = assertAndReturnFilter(batchJob);
+		Filter filter = assertAndReturnEmptyFilter(batchJob);
 		assertTotalMatchesUsingFilterFromStorage(batchJob, filter);
 	}
 
@@ -98,22 +134,21 @@ public class RunBatchJobExtendedFunctionalityTest {
 		assertEquals(batchJob.recordTypeToIndex, "someRecordType");
 	}
 
-	private void assertTotalMatchesUsingFilterFromStorage(IndexBatchJob batchJob,
-			Filter filter) {
+	private Filter assertAndReturnEmptyFilter(IndexBatchJob batchJob) {
+		var filterDG = dataFactory.MCR.assertCalledParametersReturn("factorGroupUsingNameInData",
+				"filter");
+		var filter = dataGroupToFilter.MCR.assertCalledParametersReturn("convert", filterDG);
+		assertEquals(batchJob.filter, filter);
+		return (Filter) filter;
+	}
+
+	private void assertTotalMatchesUsingFilterFromStorage(IndexBatchJob batchJob, Filter filter) {
 		recordStorage.MCR.assertParameterAsEqual("getTotalNumberOfRecordsForTypes", 0, "types",
 				List.of("someRecordType"));
 		recordStorage.MCR.assertParameter("getTotalNumberOfRecordsForTypes", 0, "filter", filter);
 		var totalNo = recordStorage.MCR.getReturnValue("getTotalNumberOfRecordsForTypes", 0);
 
 		assertEquals(batchJob.totalNumberToIndex, totalNo);
-	}
-
-	private Filter assertAndReturnFilter(IndexBatchJob batchJob) {
-		var filterDG = dataFactory.MCR.assertCalledParametersReturn("factorGroupUsingNameInData",
-				"filter");
-		var filter = dataGroupToFilter.MCR.assertCalledParametersReturn("convert", filterDG);
-		assertEquals(batchJob.filter, filter);
-		return (Filter) filter;
 	}
 
 	@Test
@@ -126,15 +161,6 @@ public class RunBatchJobExtendedFunctionalityTest {
 	public void testOnlyForTestGetIndexBatchHandler() {
 		IndexBatchHandler indexBatchHandler2 = extFunc.onlyForTestGetIndexBatchHandler();
 		assertSame(indexBatchHandler2, batchHandler);
-	}
-
-	private void setData() {
-		dataRecordGroup = new DataRecordGroupSpy();
-		data = new ExtendedFunctionalityData();
-		data.dataRecordGroup = dataRecordGroup;
-
-		dataRecordGroup.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
-				() -> "someRecordType", "recordTypeToIndex");
 	}
 
 }

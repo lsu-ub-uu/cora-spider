@@ -21,6 +21,8 @@ package se.uu.ub.cora.spider.extended.batchjob;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_AFTER_METADATA_VALIDATION;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_BEFORE_ENHANCE;
 
 import java.util.List;
 import java.util.Optional;
@@ -57,27 +59,49 @@ public class BatchJobExtendedFunctionalityFactoryTest {
 
 	@Test
 	public void testGetExtendedFunctionalityContextsForCreate() {
-		assertContext(ExtendedFunctionalityPosition.CREATE_BEFORE_ENHANCE);
-	}
-
-	private void assertContext(ExtendedFunctionalityPosition position) {
-		ExtendedFunctionalityContext extFunc = assertContextExistsAndReturnIt(position);
+		ExtendedFunctionalityContext extFunc = assertContextExistsAndReturnIt(
+				CREATE_AFTER_METADATA_VALIDATION);
 		assertEquals(extFunc.recordType, "indexBatchJob");
-		assertEquals(extFunc.position, position);
+		assertEquals(extFunc.position, CREATE_AFTER_METADATA_VALIDATION);
 		assertEquals(extFunc.runAsNumber, 0);
+
+		ExtendedFunctionalityContext extFunc2 = assertContextExistsAndReturnIt(
+				CREATE_BEFORE_ENHANCE);
+		assertEquals(extFunc2.recordType, "indexBatchJob");
+		assertEquals(extFunc2.position, CREATE_BEFORE_ENHANCE);
+		assertEquals(extFunc2.runAsNumber, 0);
 	}
 
 	@Test
-	public void testFactorCreate() {
+	public void testFactorCreateAuthorization() {
 		List<ExtendedFunctionality> functionalities = factory
-				.factor(ExtendedFunctionalityPosition.CREATE_BEFORE_ENHANCE, "indexBatchJob");
+				.factor(CREATE_AFTER_METADATA_VALIDATION, "indexBatchJob");
+		assertTrue(functionalities.get(0) instanceof BatchJobCheckAuthorizedExtendedFunctionality);
+	}
+
+	@Test
+	public void testFactorDependenciesAuthorization() {
+		List<ExtendedFunctionality> functionalities = factory
+				.factor(CREATE_AFTER_METADATA_VALIDATION, "indexBatchJob");
+		BatchJobCheckAuthorizedExtendedFunctionality extFunctionality = (BatchJobCheckAuthorizedExtendedFunctionality) functionalities
+				.get(0);
+
+		SpiderDependencyProvider dependencyProvider2 = extFunctionality
+				.onlyForTestGetDependencyProvider();
+		assertSame(dependencyProvider2, dependencyProvider);
+	}
+
+	@Test
+	public void testFactorCreateRunner() {
+		List<ExtendedFunctionality> functionalities = factory.factor(CREATE_BEFORE_ENHANCE,
+				"indexBatchJob");
 		assertTrue(functionalities.get(0) instanceof RunBatchJobExtendedFunctionality);
 	}
 
 	@Test
-	public void testFactorDependencies() {
-		List<ExtendedFunctionality> functionalities = factory
-				.factor(ExtendedFunctionalityPosition.CREATE_BEFORE_ENHANCE, "indexBatchJob");
+	public void testFactorDependenciesRunner() {
+		List<ExtendedFunctionality> functionalities = factory.factor(CREATE_BEFORE_ENHANCE,
+				"indexBatchJob");
 		RunBatchJobExtendedFunctionality extFunctionality = (RunBatchJobExtendedFunctionality) functionalities
 				.get(0);
 		IndexBatchHandlerImp indexBatchHandler = (IndexBatchHandlerImp) extFunctionality
@@ -89,7 +113,6 @@ public class BatchJobExtendedFunctionalityFactoryTest {
 				.getBatchRunnerFactory();
 		SpiderDependencyProvider dependencyProvider2 = batchRunnerFactory.getDependencyProvider();
 		assertSame(dependencyProvider2, dependencyProvider);
-
 	}
 
 	private ExtendedFunctionalityContext assertContextExistsAndReturnIt(

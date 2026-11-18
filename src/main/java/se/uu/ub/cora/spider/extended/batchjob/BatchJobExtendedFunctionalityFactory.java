@@ -18,6 +18,7 @@
  */
 package se.uu.ub.cora.spider.extended.batchjob;
 
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_AFTER_METADATA_VALIDATION;
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_BEFORE_ENHANCE;
 
 import java.util.ArrayList;
@@ -46,6 +47,7 @@ public class BatchJobExtendedFunctionalityFactory implements ExtendedFunctionali
 	}
 
 	private void createListOfContexts() {
+		createContext(CREATE_AFTER_METADATA_VALIDATION);
 		createContext(CREATE_BEFORE_ENHANCE);
 	}
 
@@ -61,6 +63,19 @@ public class BatchJobExtendedFunctionalityFactory implements ExtendedFunctionali
 	@Override
 	public List<ExtendedFunctionality> factor(ExtendedFunctionalityPosition position,
 			String recordType) {
+		if (CREATE_AFTER_METADATA_VALIDATION.equals(position)) {
+			return createBatchJobCheckAuthorized();
+
+		}
+		return createRunBatchJob();
+	}
+
+	private List<ExtendedFunctionality> createBatchJobCheckAuthorized() {
+		return Collections.singletonList(
+				new BatchJobCheckAuthorizedExtendedFunctionality(dependencyProvider));
+	}
+
+	private List<ExtendedFunctionality> createRunBatchJob() {
 		BatchRunnerFactory batchRunnerFactory = new BatchRunnerFactoryImp(dependencyProvider);
 		IndexBatchHandler indexBatchHandler = IndexBatchHandlerImp
 				.usingBatchRunnerFactory(batchRunnerFactory);
