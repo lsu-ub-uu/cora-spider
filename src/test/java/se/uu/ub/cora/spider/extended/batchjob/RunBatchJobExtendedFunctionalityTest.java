@@ -21,18 +21,13 @@ package se.uu.ub.cora.spider.extended.batchjob;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertSame;
 
-import java.util.List;
-
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import se.uu.ub.cora.data.DataGroup;
 import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.spies.DataFactorySpy;
-import se.uu.ub.cora.data.spies.DataGroupSpy;
 import se.uu.ub.cora.data.spies.DataRecordGroupSpy;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
-import se.uu.ub.cora.spider.dependency.spy.DataGroupToFilterSpy;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.index.IndexBatchHandler;
 import se.uu.ub.cora.spider.index.internal.IndexBatchJob;
@@ -43,14 +38,15 @@ import se.uu.ub.cora.storage.spies.RecordStorageSpy;
 
 public class RunBatchJobExtendedFunctionalityTest {
 
+	private static final long TOTAL_NUMBER_TO_INDEX = 32L;
 	private RunBatchJobExtendedFunctionality extFunc;
 	private DataRecordGroupSpy dataRecordGroup;
 	private ExtendedFunctionalityData data;
 	private IndexBatchHandlerSpy batchHandler;
 	private SpiderDependencyProviderSpy dependencyProvider;
-	private DataGroupToFilterSpy dataGroupToFilter;
 	private DataFactorySpy dataFactory;
 	private RecordStorageSpy recordStorage;
+	private Filter filter;
 
 	@BeforeMethod
 	private void beforeMethod() {
@@ -69,10 +65,6 @@ public class RunBatchJobExtendedFunctionalityTest {
 	public void setupDependencyProvider() {
 		dependencyProvider = new SpiderDependencyProviderSpy();
 
-		dataGroupToFilter = new DataGroupToFilterSpy();
-		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getDataGroupToFilterConverter",
-				() -> dataGroupToFilter);
-
 		recordStorage = new RecordStorageSpy();
 		dependencyProvider.MRV.setDefaultReturnValuesSupplier("getRecordStorage",
 				() -> recordStorage);
@@ -84,8 +76,13 @@ public class RunBatchJobExtendedFunctionalityTest {
 		data = new ExtendedFunctionalityData();
 		data.dataRecordGroup = dataRecordGroup;
 
+		dataRecordGroup.MRV.setSpecificReturnValuesSupplier("getId", () -> "someRecordId");
 		dataRecordGroup.MRV.setSpecificReturnValuesSupplier("getFirstAtomicValueWithNameInData",
 				() -> "someRecordType", "recordTypeToIndex");
+
+		filter = new Filter();
+		data.dataSharer.put("IndexBatchJob_filter", filter);
+		data.dataSharer.put("IndexBatchJob_totalNumberOfMatches", TOTAL_NUMBER_TO_INDEX);
 	}
 
 	@Test
@@ -100,55 +97,11 @@ public class RunBatchJobExtendedFunctionalityTest {
 		assertBatchJob(batchJob);
 	}
 
-	@Test
-	public void testCallRunIndexBatchJobWithFilter() {
-		dataRecordGroup.MRV.setSpecificReturnValuesSupplier("containsChildWithNameInData",
-				() -> true, "filter");
-		DataGroup filterGroup = new DataGroupSpy();
-		dataRecordGroup.MRV.setSpecificReturnValuesSupplier("getFirstGroupWithNameInData",
-				() -> filterGroup, "filter");
-
-		extFunc.useExtendedFunctionality(data);
-
-		batchHandler.MCR.assertMethodWasCalled("runIndexBatchJob");
-		IndexBatchJob batchJob = (IndexBatchJob) batchHandler.MCR
-				.getParameterForMethodAndCallNumberAndParameter("runIndexBatchJob", 0,
-						"indexBatchJob");
-
-		assertFilterFromData(batchJob, filterGroup);
-	}
-
-	private Filter assertFilterFromData(IndexBatchJob batchJob, DataGroup filterGroup) {
-		var filter = dataGroupToFilter.MCR.assertCalledParametersReturn("convert", filterGroup);
-		assertEquals(batchJob.filter, filter);
-		return (Filter) filter;
-	}
-
 	private void assertBatchJob(IndexBatchJob batchJob) {
-		assertRecordTypeForBatch(batchJob);
-		Filter filter = assertAndReturnEmptyFilter(batchJob);
-		assertTotalMatchesUsingFilterFromStorage(batchJob, filter);
-	}
-
-	private void assertRecordTypeForBatch(IndexBatchJob batchJob) {
+		assertEquals(batchJob.recordId, "someRecordId");
 		assertEquals(batchJob.recordTypeToIndex, "someRecordType");
-	}
-
-	private Filter assertAndReturnEmptyFilter(IndexBatchJob batchJob) {
-		var filterDG = dataFactory.MCR.assertCalledParametersReturn("factorGroupUsingNameInData",
-				"filter");
-		var filter = dataGroupToFilter.MCR.assertCalledParametersReturn("convert", filterDG);
 		assertEquals(batchJob.filter, filter);
-		return (Filter) filter;
-	}
-
-	private void assertTotalMatchesUsingFilterFromStorage(IndexBatchJob batchJob, Filter filter) {
-		recordStorage.MCR.assertParameterAsEqual("getTotalNumberOfRecordsForTypes", 0, "types",
-				List.of("someRecordType"));
-		recordStorage.MCR.assertParameter("getTotalNumberOfRecordsForTypes", 0, "filter", filter);
-		var totalNo = recordStorage.MCR.getReturnValue("getTotalNumberOfRecordsForTypes", 0);
-
-		assertEquals(batchJob.totalNumberToIndex, totalNo);
+		assertEquals(batchJob.totalNumberToIndex, TOTAL_NUMBER_TO_INDEX);
 	}
 
 	@Test

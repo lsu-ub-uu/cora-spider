@@ -18,23 +18,15 @@
  */
 package se.uu.ub.cora.spider.extended.batchjob;
 
-import java.util.List;
-
-import se.uu.ub.cora.data.DataGroup;
-import se.uu.ub.cora.data.DataProvider;
 import se.uu.ub.cora.data.DataRecordGroup;
-import se.uu.ub.cora.spider.data.DataGroupToFilter;
 import se.uu.ub.cora.spider.dependency.SpiderDependencyProvider;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionality;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityData;
 import se.uu.ub.cora.spider.index.IndexBatchHandler;
 import se.uu.ub.cora.spider.index.internal.IndexBatchJob;
 import se.uu.ub.cora.storage.Filter;
-import se.uu.ub.cora.storage.RecordStorage;
 
 public class RunBatchJobExtendedFunctionality implements ExtendedFunctionality {
-
-	private static final String FILTER = "filter";
 	private IndexBatchHandler batchHandler;
 	private SpiderDependencyProvider dependencyProvider;
 
@@ -46,51 +38,38 @@ public class RunBatchJobExtendedFunctionality implements ExtendedFunctionality {
 
 	@Override
 	public void useExtendedFunctionality(ExtendedFunctionalityData data) {
-		String recordTypeForBatch = getRecordTypeToIndex(data);
-		IndexBatchJob batchJob = createBatchJobWithFilter(recordTypeForBatch, data.dataRecordGroup);
+		IndexBatchJob batchJob = fecthAndCreateBatchJob(data);
 		batchHandler.runIndexBatchJob(batchJob);
 	}
 
-	private String getRecordTypeToIndex(ExtendedFunctionalityData data) {
+	private IndexBatchJob fecthAndCreateBatchJob(ExtendedFunctionalityData data) {
 		DataRecordGroup dataRecordGroup = data.dataRecordGroup;
+		String recordTypeForBatch = getRecordTypeToIndex(dataRecordGroup);
+		long totalNumberOfMatches = getTotalNumberOfMatches(data);
+		Filter filter = getFilter(data);
+
+		return createBatchJob(recordTypeForBatch, totalNumberOfMatches, filter,
+				dataRecordGroup.getId());
+	}
+
+	private IndexBatchJob createBatchJob(String recordTypeForBatch, long totalNumberOfMatches,
+			Filter filter, String id) {
+		IndexBatchJob batchJob = new IndexBatchJob(recordTypeForBatch, totalNumberOfMatches,
+				filter);
+		batchJob.recordId = id;
+		return batchJob;
+	}
+
+	private Filter getFilter(ExtendedFunctionalityData data) {
+		return (Filter) data.dataSharer.get("IndexBatchJob_filter");
+	}
+
+	private long getTotalNumberOfMatches(ExtendedFunctionalityData data) {
+		return (long) data.dataSharer.get("IndexBatchJob_totalNumberOfMatches");
+	}
+
+	private String getRecordTypeToIndex(DataRecordGroup dataRecordGroup) {
 		return dataRecordGroup.getFirstAtomicValueWithNameInData("recordTypeToIndex");
-	}
-
-	private IndexBatchJob createBatchJobWithFilter(String recordTypeForBatch,
-			DataRecordGroup dataRecordGroup) {
-		Filter filter = getFilter(dataRecordGroup);
-		long matchesFromStorageUsingFilter = getTotalNumberOfMatchesFromStorageUsingFilter(
-				recordTypeForBatch, filter);
-		return new IndexBatchJob(recordTypeForBatch, matchesFromStorageUsingFilter, filter);
-	}
-
-	private Filter getFilter(DataRecordGroup dataRecordGroup) {
-		DataGroup filterDG = extractFilterFromIndexSettingsOrCreateANewOne(dataRecordGroup);
-		DataGroupToFilter converterDataGroupToFilter = dependencyProvider
-				.getDataGroupToFilterConverter();
-		return converterDataGroupToFilter.convert(filterDG);
-	}
-
-	private DataGroup extractFilterFromIndexSettingsOrCreateANewOne(
-			DataRecordGroup dataRecordGroup) {
-		if (dataRecordGroup.containsChildWithNameInData(FILTER)) {
-			return extractFilterFromIndexSettings(dataRecordGroup);
-		}
-		return createEmptyFilter();
-	}
-
-	private DataGroup createEmptyFilter() {
-		return DataProvider.createGroupUsingNameInData(FILTER);
-	}
-
-	private DataGroup extractFilterFromIndexSettings(DataRecordGroup indexSettings) {
-		return indexSettings.getFirstGroupWithNameInData(FILTER);
-	}
-
-	private long getTotalNumberOfMatchesFromStorageUsingFilter(String recordTypeToIndex,
-			Filter filter) {
-		RecordStorage recordStorage = dependencyProvider.getRecordStorage();
-		return recordStorage.getTotalNumberOfRecordsForTypes(List.of(recordTypeToIndex), filter);
 	}
 
 	public SpiderDependencyProvider onlyForTestGetDependencyProvider() {

@@ -23,6 +23,7 @@ import static org.testng.Assert.assertSame;
 import static org.testng.Assert.assertTrue;
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_AFTER_METADATA_VALIDATION;
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_BEFORE_ENHANCE;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_BEFORE_STORE;
 
 import java.util.List;
 import java.util.Optional;
@@ -65,11 +66,16 @@ public class BatchJobExtendedFunctionalityFactoryTest {
 		assertEquals(extFunc.position, CREATE_AFTER_METADATA_VALIDATION);
 		assertEquals(extFunc.runAsNumber, 0);
 
-		ExtendedFunctionalityContext extFunc2 = assertContextExistsAndReturnIt(
-				CREATE_BEFORE_ENHANCE);
+		ExtendedFunctionalityContext extFunc2 = assertContextExistsAndReturnIt(CREATE_BEFORE_STORE);
 		assertEquals(extFunc2.recordType, "indexBatchJob");
-		assertEquals(extFunc2.position, CREATE_BEFORE_ENHANCE);
+		assertEquals(extFunc2.position, CREATE_BEFORE_STORE);
 		assertEquals(extFunc2.runAsNumber, 0);
+
+		ExtendedFunctionalityContext extFunc3 = assertContextExistsAndReturnIt(
+				CREATE_BEFORE_ENHANCE);
+		assertEquals(extFunc3.recordType, "indexBatchJob");
+		assertEquals(extFunc3.position, CREATE_BEFORE_ENHANCE);
+		assertEquals(extFunc3.runAsNumber, 0);
 	}
 
 	@Test
@@ -84,6 +90,25 @@ public class BatchJobExtendedFunctionalityFactoryTest {
 		List<ExtendedFunctionality> functionalities = factory
 				.factor(CREATE_AFTER_METADATA_VALIDATION, "indexBatchJob");
 		BatchJobCheckAuthorizedExtendedFunctionality extFunctionality = (BatchJobCheckAuthorizedExtendedFunctionality) functionalities
+				.get(0);
+
+		SpiderDependencyProvider dependencyProvider2 = extFunctionality
+				.onlyForTestGetDependencyProvider();
+		assertSame(dependencyProvider2, dependencyProvider);
+	}
+
+	@Test
+	public void testFactorCreateCalculateNumberToIndex() {
+		List<ExtendedFunctionality> functionalities = factory.factor(CREATE_BEFORE_STORE,
+				"indexBatchJob");
+		assertTrue(functionalities.get(0) instanceof CalculateNumberToIndexExtendedFunctionality);
+	}
+
+	@Test
+	public void testFactorDependenciesCalculateNumberToIndex() {
+		List<ExtendedFunctionality> functionalities = factory.factor(CREATE_BEFORE_STORE,
+				"indexBatchJob");
+		CalculateNumberToIndexExtendedFunctionality extFunctionality = (CalculateNumberToIndexExtendedFunctionality) functionalities
 				.get(0);
 
 		SpiderDependencyProvider dependencyProvider2 = extFunctionality

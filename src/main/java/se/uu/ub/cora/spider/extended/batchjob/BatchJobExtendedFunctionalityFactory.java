@@ -20,6 +20,7 @@ package se.uu.ub.cora.spider.extended.batchjob;
 
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_AFTER_METADATA_VALIDATION;
 import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_BEFORE_ENHANCE;
+import static se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityPosition.CREATE_BEFORE_STORE;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -48,6 +49,7 @@ public class BatchJobExtendedFunctionalityFactory implements ExtendedFunctionali
 
 	private void createListOfContexts() {
 		createContext(CREATE_AFTER_METADATA_VALIDATION);
+		createContext(CREATE_BEFORE_STORE);
 		createContext(CREATE_BEFORE_ENHANCE);
 	}
 
@@ -65,7 +67,9 @@ public class BatchJobExtendedFunctionalityFactory implements ExtendedFunctionali
 			String recordType) {
 		if (CREATE_AFTER_METADATA_VALIDATION.equals(position)) {
 			return createBatchJobCheckAuthorized();
-
+		}
+		if (CREATE_BEFORE_STORE.equals(position)) {
+			return createCalculateNumberToIndex();
 		}
 		return createRunBatchJob();
 	}
@@ -73,6 +77,11 @@ public class BatchJobExtendedFunctionalityFactory implements ExtendedFunctionali
 	private List<ExtendedFunctionality> createBatchJobCheckAuthorized() {
 		return Collections.singletonList(
 				new BatchJobCheckAuthorizedExtendedFunctionality(dependencyProvider));
+	}
+
+	private List<ExtendedFunctionality> createCalculateNumberToIndex() {
+		return Collections.singletonList(
+				new CalculateNumberToIndexExtendedFunctionality(dependencyProvider));
 	}
 
 	private List<ExtendedFunctionality> createRunBatchJob() {
