@@ -6,3 +6,4 @@ se.uu.ub.cora.spider.extended.systemsecret.SystemSecretSecurityExtendedFunctiona
 se.uu.ub.cora.spider.extended.binary.BinaryExtendedFunctionalityFactory
 se.uu.ub.cora.spider.extended.regex.RegexExtendedFunctionalityFactory
 se.uu.ub.cora.spider.extended.idsource.IdSourceExtendedFunctionalityFactory
+se.uu.ub.cora.spider.extended.batchjob.BatchJobExtendedFunctionalityFactory

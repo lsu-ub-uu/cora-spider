@@ -1,4 +1,5 @@
 import se.uu.ub.cora.spider.extended.apptoken.ApptokenExtendedFunctionalityFactory;
+import se.uu.ub.cora.spider.extended.batchjob.BatchJobExtendedFunctionalityFactory;
 import se.uu.ub.cora.spider.extended.consistency.MetadataValidatorExtendedFunctionalityFactory;
 import se.uu.ub.cora.spider.extended.workorder.WorkOrderExtendedFunctionalityFactory;
 import se.uu.ub.cora.spider.extendedfunctionality.ExtendedFunctionalityFactory;
@@ -36,6 +37,7 @@ module se.uu.ub.cora.spider {
 	exports se.uu.ub.cora.spider.recordlock;
 	exports se.uu.ub.cora.spider.resourceconvert;
 
-	provides ExtendedFunctionalityFactory with WorkOrderExtendedFunctionalityFactory,
-			ApptokenExtendedFunctionalityFactory, MetadataValidatorExtendedFunctionalityFactory;
+	provides ExtendedFunctionalityFactory
+			with WorkOrderExtendedFunctionalityFactory, ApptokenExtendedFunctionalityFactory,
+			MetadataValidatorExtendedFunctionalityFactory, BatchJobExtendedFunctionalityFactory;
 }
